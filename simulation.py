@@ -131,7 +131,8 @@ if __name__ == '__main__':
     # and display the results
     # add a selector bar to select the simulation parameters
     # and a button to run the simulation
-    st.sidebar.title("Simulation parameters")
+    st.sidebar.title("Setup")
+    st.sidebar.markdown("Select the simulation parameters and click on the button to run the simulation")
     simulation_time = st.sidebar.slider("Simulation time", 1, 100, 10)
     simulation_size = st.sidebar.slider("Simulation size", 1, 100, 10)
     # add a slider to select initial_knowledge_asymmetry
