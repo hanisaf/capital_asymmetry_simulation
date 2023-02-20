@@ -3,7 +3,8 @@ import numpy as np  # Python 3.9.7, numpy version 1.23.1
 class Simulation:
     def __init__(self, seed: int = None,
                  simulation_time: int = 60, simulation_size: int = 100,
-                 initial_knowledge_asymmetry: int = 10, initial_economic_asymmetry: int=10,
+                 initial_knowledge_location: int = 0, initial_economic_stock: int=100,
+                 exploration_norms: int = 0,
                  **kwargs) -> None:
 
         if seed is not None:
@@ -13,9 +14,12 @@ class Simulation:
         # system parameters
         self.simulation_time = simulation_time
         self.simulation_size: int = simulation_size  # number of companies
-        self.initial_knowledge_asymmetry = initial_knowledge_asymmetry
-        self.initial_economic_asymmetry = initial_economic_asymmetry
+        self.initial_knowledge_location = initial_knowledge_location
+        self.initial_economic_stock = initial_economic_stock
+        self._exploration_norms = exploration_norms
+
         self._S: np.array = self.init_S()  # S: status of each company alive/dead
+        self._D: np.array = self._S * initial_knowledge_location # D: distnance on the knowledge landscape
         self._K: np.array = self.init_K()  # K: knowledge capital
         self._E: np.array = self.init_E()  # E: Economic capital
 
@@ -100,14 +104,23 @@ class Simulation:
         return np.ones(self.simulation_size, int)
 
     def init_K(self) -> np.array:
-        t = np.random.poisson(
-            lam=self.initial_knowledge_asymmetry, size=self.simulation_size)
-        return t
+        return self._S * self.landscape(self._D)
+        # t = np.random.poisson(
+        #     lam=self.initial_knowledge_asymmetry, size=self.simulation_size)
+        # return t
 
     def init_E(self) -> np.array:
-        u = np.random.poisson(
-            lam=self.initial_economic_asymmetry, size=self.simulation_size)
-        return u
+        return self._S * self.initial_economic_stock
+        # u = np.random.poisson(
+        #     lam=self.initial_economic_asymmetry, size=self.simulation_size)
+        # return u
+
+    # simple fitness landscape, the further the distance the more the fitness
+    # but there is a chance of landing worse than the starting point
+    def landscape(self, distance):
+        #1+Log[1+x]*Cos[x]
+        return 1 + np.log(1 + distance) * np.cos(distance)
+        #return 1 + distance * np.cos(distance)
 
     def report(self, timestep):
         self.time_step_s.append(timestep)
@@ -118,7 +131,21 @@ class Simulation:
         self.companies_s.append(self._S.sum())
 
     def step(self, timestep):
-        self._S = self._E > 0
+        # first all companies decide to explore based on exploration norms
+        distances = np.random.rayleigh(self._exploration_norms, self.simulation_size)
+        # exploration requires economic resources
+        self._E = self._E - distances
+        # companies exausting their economic resources die
+        self._S = 0 + self._E > 0
+        # alive companies increase their knowledge based on distance
+        new_knowledge = self.landscape(distances)
+        # new_knowledge replaces _K if it is higher
+        self._D = ((new_knowledge > self._K) * distances + (new_knowledge <= self._K) * self._D) * self._S
+        self._K = np.maximum(self._K, new_knowledge) * self._S
+
+        # alive companies can increase their economic resources
+        # https://en.wikipedia.org/wiki/Cobb%E2%80%93Douglas_production_function
+        self._E = (self._E ** 1 )* (self._K ** 0.25) * self._S
         self.report(timestep)  # report results
 
     def go(self, verbose=True):
