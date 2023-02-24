@@ -4,13 +4,14 @@ import altair as alt
 import pandas as pd
 import numpy as np
 from simulations import SimulationCos, SimulationNK
- 
+  
 if __name__ == '__main__':
     # create a streamlit app to run the simulation
     # and display the results
 
     simulation_classes = [SimulationCos, SimulationNK]
     simulation_class = st.sidebar.selectbox("Select simulation class", simulation_classes)
+    # create an instance of the selected simulation class in order to inspect its member variables
     simulation_instance = simulation_class()
     # inspect simulation_instance and create a slider for each member variable
     member_variables = [attr for attr in dir(simulation_instance) 
@@ -51,12 +52,12 @@ if __name__ == '__main__':
     if st.sidebar.button("Run simulation"):
         # create a simulation instance with the selected values
         s = simulation_class(**values) 
-        s.go(verbose=False)
+        s.go()
         # create a streamlit app to visualize results
         # use a grid layout
         c1 = st.container()
         col1, col2 = c1.columns(2)
-        col1.subheader(f"# companies alive = {s._S.sum()}")
+        col1.subheader(f"# companies alive = {s.companies_s[-1]}")
         col1.line_chart(s.companies_s)
         col2.subheader("# location on the knowledge landscape")
         try:
