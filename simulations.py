@@ -50,11 +50,10 @@ class SimulationNK(Simulation):
         mask1 = self._S == 1
         # companies need to have economic resources to explore
         mask2 = self._E > efforts
-        #TODO still getting negative values here
         self._E[mask1 & mask2] = self._E[mask1 & mask2] - efforts[mask1 & mask2]
         
         # companies exausting their economic resources die
-        self._S = 0 + self._E > 0
+        # self._S = 0 + self._E > 0
         # new_knowledge replaces _K if it is higher
         # select coordinates where fitness is higher than _K
         # and replace _D with coordinates
