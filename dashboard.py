@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # create a streamlit app to run the simulation
     # and display the results
 
-    simulation_classes = [SimulationCos, SimulationNK]
+    simulation_classes = [ SimulationNK, SimulationCos ]
     simulation_class = st.sidebar.selectbox("Select simulation class", simulation_classes)
     # create an instance of the selected simulation class in order to inspect its member variables
     simulation_instance = simulation_class()
@@ -56,24 +56,43 @@ if __name__ == '__main__':
         # create a streamlit app to visualize results
         # use a grid layout
         c1 = st.container()
+        c1.title("Evolution")
         col1, col2 = c1.columns(2)
-        col1.subheader(f"# companies alive = {s.companies_s[-1]}")
-        col1.line_chart(s.companies_s)
-        col2.subheader("# location on the knowledge landscape")
-        try:
-            df = pd.DataFrame(np.array([s._D, s._K]).transpose(), columns=['distance', 'knowledge'])
-            chart1 = alt.Chart(df).mark_circle().encode(
-                x='distance', y='knowledge', tooltip=['distance', 'knowledge'])
-            mx = np.max(s._D) + 1
-            xs = np.arange(0, mx, 0.1)
-            ys = s.fitness(xs)
-            df2 = pd.DataFrame(np.array([xs, ys]).transpose(), columns=['distance', 'knowledge'])
-            chart2 = alt.Chart(df2).mark_line(color='black', opacity=0.5).encode(
-                x='distance', y='knowledge')
-            chart = chart1 + chart2
-            col2.altair_chart(chart, use_container_width=True)
-        except:
-            pass
+        col1.subheader(f"Economic distribution")
+        df = pd.DataFrame({'median':s.economic_median_s, 'q1':s.economic_q1_s, 'q3':s.economic_q3_s}).reset_index().rename(columns={'index':'time'})
+        # a line chart showing the median, q1 and q3 of the knowledge distribution
+        chart = alt.Chart(df).mark_line().encode(
+            x='time', y='median', color=alt.value('black')
+        ) + alt.Chart(df).mark_area(opacity=0.3).encode(
+            x='time', y='q1', y2='q3', color=alt.value('black')
+        )
+        col1.altair_chart(chart, use_container_width=True) 
+        
+        # try:
+        #     col2.subheader("# location on the knowledge landscape")
+        #     df = pd.DataFrame(np.array([s._D, s._K]).transpose(), columns=['distance', 'knowledge'])
+        #     chart1 = alt.Chart(df).mark_circle().encode(
+        #         x='distance', y='knowledge', tooltip=['distance', 'knowledge'])
+        #     mx = np.max(s._D) + 1
+        #     xs = np.arange(0, mx, 0.1)
+        #     ys = s.fitness(xs)
+        #     df2 = pd.DataFrame(np.array([xs, ys]).transpose(), columns=['distance', 'knowledge'])
+        #     chart2 = alt.Chart(df2).mark_line(color='black', opacity=0.5).encode(
+        #         x='distance', y='knowledge')
+        #     chart = chart1 + chart2
+        #     col2.altair_chart(chart, use_container_width=True)
+        # except:
+        #     pass
+        col2.subheader("Knowledge distribution")
+        df = pd.DataFrame({'median':s.knowledge_median_s, 'q1':s.knowledge_q1_s, 'q3':s.knowledge_q3_s}).reset_index().rename(columns={'index':'time'})
+        # a line chart showing the median, q1 and q3 of the knowledge distribution
+        chart = alt.Chart(df).mark_line().encode(
+            x='time', y='median', color=alt.value('black')
+        ) + alt.Chart(df).mark_area(opacity=0.3).encode(
+            x='time', y='q1', y2='q3', color=alt.value('black')
+        )
+        col2.altair_chart(chart, use_container_width=True)        
+        #df = pd.Series(s.).reset_index(name='knowledge').rename(columns={'index':'time'})
         c2 = st.container()
         col1, col2 = c2.columns(2)
         col1.subheader("Economic gini")
@@ -82,6 +101,9 @@ if __name__ == '__main__':
         # make the title of the chart "Knowledge gini"
         col2.subheader("Knowledge gini")
         col2.line_chart(s.knowledge_gini_s)
+        c3 = st.container()
+        c3.title("Last step")
+        col1, col2 = c3.columns(2)
         # create a histogram to visualize the distribution of _E
         col1.subheader("Economic distribution")
         col1.bar_chart(s._E)
@@ -90,3 +112,4 @@ if __name__ == '__main__':
         # create a histogram to visualize the distribution of _K
         col2.subheader("Knowledge distribution")
         col2.bar_chart(s._K)
+        col2.markdown(f"### companies alive = {s.companies_s[-1]}")

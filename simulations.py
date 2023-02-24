@@ -40,6 +40,31 @@ class SimulationNK(Simulation):
         efforts = np.ones(self.simulation_size) * self.exploration_effort * mask
         fitnesses = self.fitness(coordinates)
         return coordinates, efforts, fitnesses
+    
+
+    def step(self, timestep):
+        # first all companies decide to explore based on exploration norms
+        coordinates, efforts, fitnesses = self.explore()
+        
+        # only alive companies can explore
+        mask1 = self._S == 1
+        # companies need to have economic resources to explore
+        mask2 = self._E > efforts
+        #TODO still getting negative values here
+        self._E[mask1 & mask2] = self._E[mask1 & mask2] - efforts[mask1 & mask2]
+        
+        # companies exausting their economic resources die
+        self._S = 0 + self._E > 0
+        # new_knowledge replaces _K if it is higher
+        # select coordinates where fitness is higher than _K
+        # and replace _D with coordinates
+        # and replace _K with fitnesses
+        mask3 = fitnesses > self._K
+        self._D[mask1 & mask2 & mask3] = coordinates[mask1 & mask2 & mask3]
+        self._K[mask1 & mask2 & mask3] = fitnesses[mask1 & mask2 & mask3]
+        # alive companies can increase their economic resources
+        self._E[mask1] = self.produce()[mask1] 
+        self.report(timestep)  # report results
 
 class SimulationCos(Simulation):
     def __init__(self, alpha : float = 1.0, beta : float = 0.1, **kwargs):
@@ -66,6 +91,28 @@ class SimulationCos(Simulation):
 
     def init_D(self) -> np.array:
         return self._S * self.initial_knowledge_location
+
+    def step(self, timestep):
+        # first all companies decide to explore based on exploration norms
+        coordinates, efforts, fitnesses = self.explore()
+        
+        # exploration requires economic resources
+        mask1 = self._S == 1
+        #TODO still getting negative values here
+        self._E[mask1] = np.maximum( self._E[mask1] - efforts[mask1], 0)
+        
+        # companies exausting their economic resources die
+        self._S = 0 + self._E > 0
+        # new_knowledge replaces _K if it is higher
+        # select coordinates where fitness is higher than _K
+        # and replace _D with coordinates
+        # and replace _K with fitnesses
+        mask2 = fitnesses > self._K
+        self._D[mask1 & mask2] = coordinates[mask1 & mask2]
+        self._K[mask1 & mask2] = fitnesses[mask1 & mask2]
+        # alive companies can increase their economic resources
+        self._E[mask1] = self.produce()[mask1] 
+        self.report(timestep)  # report results
 
 # one run to test code, to run multiple times check code in utilities.py
 if __name__ == '__main__':

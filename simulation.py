@@ -30,7 +30,13 @@ class Simulation(ABC):
         self.time_step_s: list = []
         self.economic_gini_s: list = []  
         self.knowledge_gini_s: list = []
+        self.knowledge_median_s: list = []
+        self.knowledge_q1_s: list = []
+        self.knowledge_q3_s: list = []
         self.companies_s : list = []
+        self.economic_median_s: list = []
+        self.economic_q1_s: list = []
+        self.economic_q3_s: list = []
         # any extra parameters passed are stored
         for k, v in kwargs.items():
             exec(f'self.{k} = {v}')
@@ -68,28 +74,16 @@ class Simulation(ABC):
         self.knowledge_gini_s.append(knowledge_gini)
         self.economic_gini_s.append(economic_gini)
         self.companies_s.append(self._S.sum())
+        self.knowledge_median_s.append(np.median(self._K))
+        self.knowledge_q1_s.append(np.quantile(self._K, 0.25))
+        self.knowledge_q3_s.append(np.quantile(self._K, 0.75))
+        self.economic_median_s.append(np.median(self._E))
+        self.economic_q1_s.append(np.quantile(self._E, 0.25))
+        self.economic_q3_s.append(np.quantile(self._E, 0.75))
 
+    @abstractmethod
     def step(self, timestep):
-        # first all companies decide to explore based on exploration norms
-        coordinates, efforts, fitnesses = self.explore()
-        
-        # exploration requires economic resources
-        mask1 = self._S == 1
-        #TODO still getting negative values here
-        self._E[mask1] = np.maximum( self._E[mask1] - efforts[mask1], 0)
-        
-        # companies exausting their economic resources die
-        self._S = 0 + self._E > 0
-        # new_knowledge replaces _K if it is higher
-        # select coordinates where fitness is higher than _K
-        # and replace _D with coordinates
-        # and replace _K with fitnesses
-        mask2 = fitnesses > self._K
-        self._D[mask1 & mask2] = coordinates[mask1 & mask2]
-        self._K[mask1 & mask2] = fitnesses[mask1 & mask2]
-        # alive companies can increase their economic resources
-        self._E[mask1] = self.produce()[mask1] 
-        self.report(timestep)  # report results
+        pass
 
     def go(self, verbose=True):
         self.report(0)  # report initial values
