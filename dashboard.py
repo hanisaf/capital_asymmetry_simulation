@@ -59,8 +59,10 @@ if __name__ == '__main__':
         c1 = st.container()
         c1.title("Evolution")
         col1, col2 = c1.columns(2)
-        col1.subheader(f"Economic distribution")
-        df = pd.DataFrame({'median':s.economic_median_s, 'q1':s.economic_q1_s, 'q3':s.economic_q3_s}).reset_index().rename(columns={'index':'time'})
+        col1.subheader(f"Economic distribution (log scale)")
+        df = pd.DataFrame({'median':s.economic_median_s, 'q1':s.economic_q1_s, 'q3':s.economic_q3_s})
+        df = df.applymap(lambda x: np.log(x) if x > 0 else 0)
+        df = df.reset_index().rename(columns={'index':'time'})
         # a line chart showing the median, q1 and q3 of the knowledge distribution
         chart = alt.Chart(df).mark_line().encode(
             x='time', y='median', color=alt.value('black')
