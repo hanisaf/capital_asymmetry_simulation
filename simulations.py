@@ -47,6 +47,7 @@ class SimulationNK():
         self.economic_median_s: list = []
         self.economic_q1_s: list = []
         self.economic_q3_s: list = []
+        self.market_capital_s: list = []
         # any extra parameters passed are stored
         for k, v in kwargs.items():
             exec(f'self.{k} = {v}')
@@ -68,7 +69,7 @@ class SimulationNK():
         return np.array([np.array(list(coord)).astype(int) for _ in range(self.simulation_size)])
 
     def fitness(self, coordinates):
-        return np.array([self._landscape.compFit(''.join(coord.astype(str))) for coord in coordinates])
+        return np.array([self._landscape.compFit(''.join(coord.astype(str)), normalize=False) for coord in coordinates])
 
     def produce(self):
         return (self._E * self.A) * (1 + self._K)
@@ -86,6 +87,7 @@ class SimulationNK():
         self.economic_median_s.append(np.median(self._E))
         self.economic_q1_s.append(np.quantile(self._E, 0.25))
         self.economic_q3_s.append(np.quantile(self._E, 0.75))
+        self.market_capital_s.append(np.nansum(self._E))
 
     def explore(self):
         # in probability proportional to exploration norms

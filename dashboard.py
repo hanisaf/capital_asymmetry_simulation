@@ -109,7 +109,7 @@ if __name__ == '__main__':
         col1.subheader("Economic distribution")
         col1.bar_chart(s._E)
         # drop the NaN values from _E and sum the remaining values
-        col1.markdown(f"### Market cap: {np.nansum(s._E):.0f}")
+        col1.markdown(f"### Market cap: {s.market_capital_s[-1]:.0f}")
         # create a histogram to visualize the distribution of _K
         col2.subheader("Knowledge distribution")
         col2.bar_chart(s._K)

@@ -14,9 +14,11 @@ class NKLandscape:
        self.genNeigh()
        self.genFunc()
        self.Kbits = genSeqBits(self.k+1)
-       self.fitnesses = {neigh:self.compFit(neigh) for neigh in genSeqBits(self.n)}
+       self.fitnesses = {neigh:self.compFit(neigh, normalize=False) for neigh in genSeqBits(self.n)}
        self.minGene = min(self.fitnesses, key=self.fitnesses.get)
+       self.maxGene = max(self.fitnesses, key=self.fitnesses.get)
        self.minFitness = self.fitnesses[self.minGene]
+       self.maxFitness = self.fitnesses[self.maxGene]
 
     def dispNK(self):
         print(self.n, self.k)
@@ -48,7 +50,7 @@ class NKLandscape:
     def genK(self):
         return self.k
     """ compute the fitness value"""
-    def compFit(self, bitStr): 
+    def compFit(self, bitStr, normalize=True): 
         sum = 0
         for i in range(self.n):
             """ compose interacting bits """
@@ -61,7 +63,11 @@ class NKLandscape:
             """ sum up the sub-function values """ 
             #print 'i', i, 'index in func', int(interStr,2), 'interStr', interStr
             sum = sum + self.func[i][int(interStr,2)]
-        return sum/self.n
+        fit = sum/self.n
+        #min-max normalize the fitness value
+        if normalize:
+            fit = (fit - self.minFitness)/(self.maxFitness - self.minFitness)
+        return fit
     
             
 def genSeqBits(n):
