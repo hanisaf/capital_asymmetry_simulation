@@ -14,7 +14,10 @@ class NKLandscape:
        self.genNeigh()
        self.genFunc()
        self.Kbits = genSeqBits(self.k+1)
-       
+       self.fitnesses = {neigh:self.compFit(neigh) for neigh in genSeqBits(self.n)}
+       self.minGene = min(self.fitnesses, key=self.fitnesses.get)
+       self.minFitness = self.fitnesses[self.minGene]
+
     def dispNK(self):
         print(self.n, self.k)
         

@@ -3,15 +3,16 @@ import streamlit as st
 import altair as alt
 import pandas as pd
 import numpy as np
-from simulations import SimulationCos, SimulationNK
+from simulations import  SimulationNK
   
 if __name__ == '__main__':
     # create a streamlit app to run the simulation
     # and display the results
 
-    simulation_classes = [ SimulationNK, SimulationCos ]
-    simulation_class = st.sidebar.selectbox("Select simulation class", simulation_classes)
+    # simulation_classes = [ SimulationNK, SimulationCos ]
+    # simulation_class = st.sidebar.selectbox("Select simulation class", simulation_classes)
     # create an instance of the selected simulation class in order to inspect its member variables
+    simulation_class = SimulationNK
     simulation_instance = simulation_class()
     # inspect simulation_instance and create a slider for each member variable
     member_variables = [attr for attr in dir(simulation_instance) 
